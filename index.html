@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        body { margin: 0; overflow: hidden; touch-action: none; background: #000; }
+        canvas { display: block; }
+        #score { position: fixed; top: 20px; left: 20px; color: #fff; font-family: Arial; font-size: 24px; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="score">Score: 0</div>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        
+        let state = {
+            player: {
+                x: 0, y: 0, size: 30, 
+                shield: false,
+                speed: 5,
+                trail: [],
+                color: '#00FFFF'
+            },
+            stars: [],
+            enemies: [],
+            powerUps: [],
+            particles: [],
+            score: 0,
+            time: 0,
+            active: true,
+            level: 1
+        };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            state.player.y = canvas.height/2;
+            state.player.x = 80;
+            generateStars();
+        }
+
+        function generateStars() {
+            state.stars = Array(100).fill().map(() => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2,
+                speed: Math.random() * 3 + 1,
+                color: `hsl(${Math.random() * 360}, 50%, 80%)`
+            }));
+        }
+
+        function createParticles(x, y, color, count = 10) {
+            for(let i = 0; i < count; i++) {
+                state.particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    size: Math.random() * 3 + 1,
+                    life: 1,
+                    color
+                });
+            }
+        }
+
+        function spawnPowerUp() {
+            if(Math.random() < 0.005) {
+                state.powerUps.push({
+                    x: canvas.width,
+                    y: Math.random() * (canvas.height - 40),
+                    size: 20,
+                    type: Math.random() < 0.5 ? 'shield' : 'score',
+                    speed: 3
+                });
+            }
+        }
+
+        function handleInput(e) {
+            e.preventDefault();
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = canvas.getBoundingClientRect();
+            const y = touch.clientY - rect.top;
+            
+            if(!state.active) {
+                resetGame();
+                return;
+            }
+            
+            // Smooth player movement
+            const targetY = y;
+            state.player.y += (targetY - state.player.y) * 0.2;
+        }
+
+        function resetGame() {
+            state = {
+                player: {
+                    x: 80, y: canvas.height/2,
+                    size: 30, speed: 5,
+                    shield: false,
+                    trail: [],
+                    color: '#00FFFF'
+                },
+                stars: state.stars,
+                enemies: [],
+                powerUps: [],
+                particles: [],
+                score: 0,
+                time: 0,
+                active: true,
+                level: 1
+            };
+        }
+
+        function update() {
+            if(state.active) {
+                state.time++;
+                
+                // Update level
+                state.level = Math.floor(state.score / 20) + 1;
+                
+                // Update stars
+                state.stars.forEach(star => {
+                    star.x -= star.speed;
+                    if(star.x < 0) {
+                        star.x = canvas.width;
+                        star.y = Math.random() * canvas.height;
+                    }
+                });
+
+                // Spawn enemies
+                if(state.time % Math.max(60 - state.level * 5, 30) === 0) {
+                    state.enemies.push({
+                        x: canvas.width,
+                        y: Math.random() * (canvas.height - 40),
+                        size: 30,
+                        speed: 5 + state.level
+                    });
+                }
+
+                // Spawn power-ups
+                spawnPowerUp();
+
+                // Update power-ups
+                state.powerUps = state.powerUps.filter(powerUp => {
+                    powerUp.x -= powerUp.speed;
+                    
+                    // Collision with player
+                    const dx = state.player.x - powerUp.x;
+                    const dy = state.player.y - powerUp.y;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if(distance < state.player.size/2 + powerUp.size/2) {
+                        if(powerUp.type === 'shield') {
+                            state.player.shield = true;
+                            setTimeout(() => state.player.shield = false, 5000);
+                        } else {
+                            state.score += 10;
+                        }
+                        createParticles(powerUp.x, powerUp.y, '#ffff00', 20);
+                        return false;
+                    }
+                    
+                    return powerUp.x > -powerUp.size;
+                });
+
+                // Update enemies
+                state.enemies = state.enemies.filter(enemy => {
+                    enemy.x -= enemy.speed;
+                    
+                    const dx = state.player.x - enemy.x;
+                    const dy = state.player.y - enemy.y;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if(distance < state.player.size/2 + enemy.size/2) {
+                        if(state.player.shield) {
+                            createParticles(enemy.x, enemy.y, '#ffff00', 20);
+                            state.player.shield = false;
+                            return false;
+                        } else {
+                            createParticles(state.player.x, state.player.y, '#ff4444', 30);
+                            state.active = false;
+                        }
+                    }
+                    
+                    if(enemy.x < -enemy.size) {
+                        state.score++;
+                        scoreEl.textContent = `Score: ${state.score}`;
+                        return false;
+                    }
+                    return true;
+                });
+
+                // Update player trail
+                state.player.trail.unshift({x: state.player.x, y: state.player.y});
+                if(state.player.trail.length > 10) state.player.trail.pop();
+
+                // Update particles
+                state.particles = state.particles.filter(particle => {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.vx *= 0.99;
+                    particle.vy *= 0.99;
+                    particle.life -= 0.02;
+                    return particle.life > 0;
+                });
+            }
+
+            // Draw
+            ctx.fillStyle = '#000033';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw stars
+            state.stars.forEach(star => {
+                ctx.fillStyle = star.color;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw player trail
+            state.player.trail.forEach((pos, i) => {
+                ctx.fillStyle = `rgba(0, 255, 255, ${1 - i/10})`;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, state.player.size/2 - i, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw player
+            ctx.fillStyle = state.player.color;
+            ctx.beginPath();
+            ctx.arc(state.player.x, state.player.y, state.player.size/2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw shield if active
+            if(state.player.shield) {
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(state.player.x, state.player.y, state.player.size/2 + 10, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Draw enemies
+            ctx.fillStyle = '#FF4444';
+            state.enemies.forEach(enemy => {
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.size/2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw power-ups
+            state.powerUps.forEach(powerUp => {
+                ctx.fillStyle = powerUp.type === 'shield' ? '#ffff00' : '#00ff00';
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw particles
+            state.particles.forEach(particle => {
+                ctx.fillStyle = `rgba(${particle.color}, ${particle.life})`;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw game over
+            if(!state.active) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#FFF';
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Game Over', canvas.width/2, canvas.height/2);
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText(`Final Score: ${state.score}`, canvas.width/2, canvas.height/2 + 50);
+                ctx.fillText('Tap to restart', canvas.width/2, canvas.height/2 + 90);
+                ctx.textAlign = 'left';
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+        canvas.addEventListener('touchmove', handleInput);
+        canvas.addEventListener('mousemove', handleInput);
+        canvas.addEventListener('touchstart', handleInput);
+        update();
+    </script>
+</body>
+</html>
