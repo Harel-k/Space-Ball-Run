@@ -1,0 +1,22 @@
+{
+  "name": "Space Ball Run",
+  "short_name": "SpaceBall",
+  "description": "Dodge enemies, collect power-ups, and survive in Space Ball Run!",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#000033",
+  "theme_color": "#000033",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
