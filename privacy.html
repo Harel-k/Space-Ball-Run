@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy - Space Ball Run</title>
+  <style>
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:#000033;
+      color:#ffffff;
+      line-height:1.6;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px;
+    }
+    .card{
+      background:rgba(0,0,0,0.35);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:16px;
+      padding:22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    h1,h2{ margin:0 0 12px 0; }
+    h1{ font-size:34px; }
+    h2{ font-size:20px; margin-top:22px; }
+    p,li{ color:rgba(255,255,255,0.92); }
+    a{ color:#00ffff; }
+    code{
+      background:rgba(255,255,255,0.08);
+      padding:2px 6px;
+      border-radius:6px;
+    }
+    .small{ font-size: 14px; color: rgba(255,255,255,0.75); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Privacy Policy</h1>
+      <p class="small">Last updated: <span id="date"></span></p>
+
+      <p>
+        This Privacy Policy explains how <strong>Space Ball Run</strong> (“the App”, “we”, “us”) handles information
+        when you use the App.
+      </p>
+
+      <h2>1) Information We Collect</h2>
+      <p>
+        <strong>We do not collect, store, or share personal information.</strong>
+        Space Ball Run does not require you to create an account, and it does not ask for your name, email address,
+        phone number, or location.
+      </p>
+
+      <h2>2) Data Stored on Your Device</h2>
+      <p>
+        The App may store basic game data locally on your device (for example: settings or progress) using browser storage
+        such as <code>localStorage</code> or cache. This data stays on your device and is not sent to us.
+      </p>
+
+      <h2>3) Ads & Analytics</h2>
+      <p>
+        Space Ball Run does not include advertising SDKs and does not use analytics tools that track you across apps or websites.
+      </p>
+
+      <h2>4) Permissions</h2>
+      <p>
+        The App does not request sensitive permissions such as location, contacts, microphone, or camera.
+      </p>
+
+      <h2>5) Third-Party Services</h2>
+      <p>
+        The App is delivered through your device’s web engine (e.g., Chrome / Android System WebView). Those components may have
+        their own privacy policies and may process technical data required to load web content. We do not control or receive that data.
+      </p>
+
+      <h2>6) Children’s Privacy</h2>
+      <p>
+        Space Ball Run does not knowingly collect personal information from children. Since we do not collect personal data at all,
+        there is no user profile or tracking.
+      </p>
+
+      <h2>7) Changes to This Policy</h2>
+      <p>
+        If we update this Privacy Policy, we will change the “Last updated” date on this page.
+      </p>
+
+      <h2>8) Contact</h2>
+      <p>
+        If you have questions about this Privacy Policy, you can contact us at:
+        <br />
+        <strong>Email:</strong> <a href="mailto:Soon">Soon</a>
+      </p>
+
+      
+    </div>
+  </div>
+
+  <script>
+    // Set today's date automatically (format: Month day, year)
+    const d = new Date();
+    const opts = { year: "numeric", month: "long", day: "numeric" };
+    document.getElementById("date").textContent = d.toLocaleDateString(undefined, opts);
+  </script>
+</body>
+</html>
